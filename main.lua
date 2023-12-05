@@ -8,6 +8,7 @@ function Main:Init()
   local o = {}
   setmetatable(o, {__index = Main})
   o.impls = {}
+  o.initializedImpls = {}
   o.lastTimeImplRegistered = 0
   o.ready = false
   if not IsDuplicityVersion() then
@@ -78,28 +79,28 @@ function Main:RegisterImpl(name, impl)
   self.lastTimeImplRegistered = GetGameTimer()
   self:LogSuccess("Impl %s registered", name)
   if self.ready then 
-    self.impls[name] = impl(self)
-    self.impls[name]:OnReady()
+    self.initializedImpls[name] = impl(self)
+    self.initializedImpls[name]:OnReady()
   end
 end
 
 function Main:InitImpl()
   for name, impl in pairs(self.impls) do
-    self.impls[name] = impl(self)
+    self.initializedImpls[name] = impl(self)
   end
   self:LogInfo("All impls initialized")
   self.ready = true
-  for name, impl in pairs(self.impls) do
+  for name, impl in pairs(self.initializedImpls) do
     impl:OnReady()
   end
 end
 
 function Main:GetImpl(name)
-  if not self.impls[name] then
+  if not self.initializedImpls[name] then
     self:LogError("Impl %s not found", name)
     return
   end
-  return self.impls[name]
+  return self.initializedImpls[name]
 end
 
 function Main:ImplCall(name, func, ...)
@@ -113,6 +114,8 @@ function Main:ImplCall(name, func, ...)
   end
   return impl[func](impl, ...)
 end
+
+
 
 function Main:ImplInfo()
   for name, impl in pairs(self.impls) do

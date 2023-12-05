@@ -90,7 +90,10 @@ end
 
 -- create an instance of an object with constructor parameters
 function Class:new(...)
-	local obj = self:extend({})
+	local obj = self:extend({
+    destroyed = false,
+    originalMethods = {}
+  })
 	if obj.Init then obj:Init(...) end
 	return obj
 end
@@ -113,6 +116,53 @@ function Impl:Destroy()
 end
 
 function Impl:OnReady(...)
+end
+
+function Impl:HookMethod(method, hookFn)
+  local oldMethod = self[method]
+  if not oldMethod then 
+    main:LogError("Impl %s missing method %s", self.name, method)
+    return
+  end
+  self.originalMethods[method] = oldMethod
+
+  self[method] = function(...)
+    if self.destroyed then
+      return
+    end
+    local result = {pcall(hookFn, ...)}
+    print(json.encode(result))
+    local success = table.remove(result, 1)
+    if not success then
+      main:LogError("Impl %s hook %s error: %s", self.name, method, result[2])
+      self[method] = oldMethod
+      return oldMethod(...)
+    end
+    return oldMethod(self, table.unpack(result))
+  end
+end
+
+function Impl:GetMethod(method)
+  return self[method]
+end
+
+function Impl:ReplaceMethod(method, newMethod)
+  if not self[method] then 
+    main:LogError("Impl %s missing method %s", self.name, method)
+    return
+  end
+  if not self.originalMethods[method] then 
+    self.originalMethods[method] = self[method]
+  end
+  self[method] = newMethod
+end
+
+function Impl:RefreshMethod(method)
+  if not self.originalMethods[method] then 
+    main:LogError("Impl %s missing method %s", self.name, method)
+    return
+  end
+  self[method] = self.originalMethods[method]
 end
 
 function NewImpl(name)
