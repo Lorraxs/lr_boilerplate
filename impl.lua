@@ -114,9 +114,16 @@ end
 function Impl:Destroy()
   self.destroyed = true
   main:LogInfo("%s destroyed", self.name)
+	for k, v in pairs(self.eventHandlers) do
+		RemoveEventHandler(v)
+	end
+	self:OnDestroy()
 end
 
 function Impl:OnReady(...)
+end
+
+function Impl:OnDestroy(...)
 end
 
 function Impl:HookMethod(method, hookFn)
@@ -194,6 +201,14 @@ function Impl:Off(name, handler)
 		return;
 	end
 	main:LogError("Event %s:%s not registered", self.name, name)
+end
+
+function Impl:AddEventHandler(eventName, ...)
+	self.eventHandlers[eventName] = AddEventHandler(eventName, ...)
+end
+
+function Impl:RegisterNetEvent(eventName, ...)
+	self.eventHandlers[eventName] = RegisterNetEvent(eventName, ...)
 end
 
 if env == 'sv' then
