@@ -55,27 +55,12 @@ Config.Dev = false
 Config.Nui = true -- will wait NUI trigger RegisterNUICallback('AppReady', ...) before init
 ```
 
-# Hook method
+# This boilerplate will export all method from all modules
 
-```lua
-impl:HookMethod(methodName, hookFunc) --hookFunc must return args from reciver
-```
-
-## example:
-
-```lua
-local hud = main:GetImpl("Hud")
-hud:HookMethod("ShowHUD", function(this, ...)
-  main:LogInfo("ShowHud was called")
-  return(...)
-end)
-```
-
-# Export all method from all modules
-
-```lua
-exports['lr_addon']:ImplCall(name, func, ...) --Call a method in module external
-```
+- To call method in module out side of script
+  ```lua
+  exports['lr_addon']:ImplCall(name, func, ...) --Call a method in module external
+  ```
 
 # Main
 
