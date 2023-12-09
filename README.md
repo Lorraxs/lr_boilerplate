@@ -1,19 +1,9 @@
-<div align="center">
-    <img href="https://projecterror.dev" width="150" src="https://i.tasoagc.dev/c1pD" alt="Material-UI logo" />
-</div>
-<h1 align="center">FiveM React and Lua Boilerplate</h1>
+<p align="center">
+  <a href="" rel="noopener">
+ <img width=200px height=200px src="https://lorraxs.com/logo.svg" alt="Project logo"></a>
+</p>
 
-<div align="center">
-A simple and extendable React (TypeScript) boilerplate designed around the Lua ScRT
-</div>
-
-<div align="center">
-
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/project-error/pe-utils/master/LICENSE)
-![Discord](https://img.shields.io/discord/791854454760013827?label=Our%20Discord)
-![David](https://img.shields.io/david/project-error/fivem-react-boilerplate-lua)
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=project-error/fivem-react-boilerplate-lua)](https://dependabot.com)
-</div>
+<h1 align="center">LR Fivem lua module</h1>
 
 This repository is a basic boilerplate for getting started
 with React in NUI. It contains several helpful utilities and
@@ -27,11 +17,13 @@ production build
 This version of the boilerplate is meant for the CfxLua runtime.
 
 ## Requirements
-* [Node > v10.6](https://nodejs.org/en/)
-* [Yarn](https://yarnpkg.com/getting-started/install) (Preferred but not required)
 
-*A basic understanding of the modern web development workflow. If you don't 
-know this yet, React might not be for you just yet.*
+- [Node > v10.6](https://nodejs.org/en/)
+- [Yarn](https://yarnpkg.com/getting-started/install) (Preferred but not required)
+- [ox_lib](https://github.com/overextended/ox_lib)
+
+_A basic understanding of the modern web development workflow. If you don't
+know this yet, React might not be for you just yet._
 
 ## Getting Started
 
@@ -40,177 +32,244 @@ it within your `resources` folder
 
 ### Installation
 
-*The boilerplate was made using `yarn` but is still compatible with
-`npm`.*
+_The boilerplate was made using `yarn` but is still compatible with
+`npm`._
 
 Install dependencies by navigating to the `web` folder within
 a terminal of your choice and type `npm i` or `yarn`.
 
 ## Features
 
-This boilerplate comes with some utilities and examples to work off of.
+# Enable modules in Config.EnableModules
 
-### Lua Utils
-
-**SendReactMessage**
-
-This is a small wrapper for dispatching NUI messages. This is designed
-to be used with the `useNuiEvent` React hook.
-
-Signature
 ```lua
----@param action string The action you wish to target
----@param data any The data you wish to send along with this action
-SendReactMessage(action, data)
-```
-
-Usage
-```lua
-SendReactMessage('setVisible', true)
-```
-
-**debugPrint**
-
-A debug printing utility that is dependent on a convar,
-if the convar is set this will print out to the console.
-
-The convar is dependent on the name given to the resource.
-It follows this format `YOUR_RESOURCE_NAME-debugMode`
-
-To turn on debugMode add `setr YOUR_RESOURCE_NAME-debugMode 1` to 
-your server.cfg or use the `setr` console command instead.
-
-Signature (Replicates `print`)
-```lua
----@param ... any[] The arguments you wish to send
-debugPrint(...)
-```
-
-Usage
-```lua
-debugPrint('wow cool string to print', true, someOtherVar)
-```
-
-### React Utils
-
-Signatures are not included for these utilities as the type definitions
-are sufficient enough.
-
-**useNuiEvent**
-
-This is a custom React hook that is designed to intercept and handle
-messages dispatched by the game scripts. This is the primary
-way of creating passive listeners.
-
-
-*Note: For now handlers can only be registered a single time. I haven't
-come across a personal usecase for a cascading event system*
-
-**Usage**
-```jsx
-const MyComp: React.FC = () => {
-  const [state, setState] = useState('')
-  
-  useNuiEvent<string>('myAction', (data) => {
-    // the first argument to the handler function
-    // is the data argument sent using SendReactMessage
-    
-    // do whatever logic u want here
-    setState(data)
-  })
-  
-  return(
-    <div>
-      <h1>Some component</h1>
-      <p>{state}</p>
-    </div>
-  )
+Config.EnableModules = {
+  ["Newbie"] = false,
+  ["DamageLog"] = true,
+  ["Hud"] = true,
+  ['Player'] = true,
+  ['Speedometer'] = true
 }
-
+Config.Debug = true -- print log
+Config.Dev = false
+Config.Nui = true -- will wait NUI trigger RegisterNUICallback('AppReady', ...) before init
 ```
 
-**fetchNui**
+# Hook method
 
-This is a simple NUI focused wrapper around the standard `fetch` API.
-This is the main way to accomplish active NUI data fetching 
-or to trigger NUI callbacks in the game scripts.
-
-When using this, you must always at least callback using `{}`
-in the gamescripts.
-
-*This can be heavily customized to your use case*
-
-**Usage**
-```ts
-// First argument is the callback event name. 
-fetchNui<ReturnData>('getClientData').then(retData => {
-  console.log('Got return data from client scripts:')
-  console.dir(retData)
-  setClientData(retData)
-}).catch(e => {
-  console.error('Setting mock data due to error', e)
-  setClientData({ x: 500, y: 300, z: 200})
-})
+```lua
+impl:HookMethod(methodName, hookFunc) --hookFunc must return args from reciver
 ```
 
-**debugData**
+## example:
 
-This is a function allowing for mocking dispatched game script
-actions in a browser environment. It will trigger `useNuiEvent` handlers
-as if they were dispatched by the game scripts. **It will only fire if the current
-environment is a regular browser and not CEF**
-
-**Usage**
-```ts
-// This will target the useNuiEvent hooks registered with `setVisible`
-// and pass them the data of `true`
-debugData([
-  {
-    action: 'setVisible',
-    data: true,
-  }
-])
+```lua
+local hud = main:GetImpl("Hud")
+hud:HookMethod("ShowHUD", function(this, ...)
+  main:LogInfo("ShowHud was called")
+  return(...)
+end)
 ```
 
-**Misc Utils**
+# Export all method from all modules
 
-These are small but useful included utilities.
-
-* `isEnvBrowser()` - Will return a boolean indicating if the current 
-  environment is a regular browser. (Useful for logic in development)
-
-## Development Workflow
-
-This boilerplate was designed with development workflow in mind.
-It includes some helpful scripts to accomplish that.
-
-**Hot Builds In-Game**
-
-When developing in-game, you can use the hot build system by
-running the `start:game` script. This is essentially the start
-script but it writes to disk. Meaning all that is required is a
-resource restart to update the game script
-
-**Usage**
-```sh
-# yarn
-yarn start:game
-# npm
-npm run start:game
+```lua
+exports['lr_addon']:ImplCall(name, func, ...) --Call a method in module external
 ```
 
-**Production Builds**
+# Main
 
-When you are done with development phase for your resource. You
-must create a production build that is optimized and minimized.
-
-You can do this by running the following:
-
-```sh
-npm run build
-yarn build 
+```lua
+variable `main` is global
+you can use this variable in anywhere
 ```
 
-## Additional Notes
+- Properties
 
-Need further support? Join our [Discord](https://discord.com/invite/HYwBjTbAY5)!
+  ```lua
+  main.playerId
+  main.playerPed
+  main.playerCoords
+  main.playerHeading
+  main.playerServerId
+  ```
+
+- methods (internal use)
+
+  ```lua
+  main:GetImpl(implName) --Get module instance
+  ```
+
+  ```lua
+  main:ImplCall(implName, methodName, ...args) --Call a method in module
+  --You can also use this way
+  local testImpl = main:GetImpl("Test")
+  testImpl:<methodName>(...args)
+  ```
+
+# Impl
+
+- default methods
+
+  ```lua
+  Impl:GetName() --Get name of module
+  ```
+
+  ```lua
+  Impl:OnReady() --Called when module was initialized
+  --Example
+  local Impl = NewImpl("Test")
+
+  function Impl:OnReady()
+    self:LogInfo("%s initialized", self:GetName())
+    --will print out: [INFO] [TEST] Test initialized
+    --Your rest of script
+  end
+
+  function Impl:HookHere(value)
+    return value + 1
+  end
+
+  function Impl:ReplaceThis(a, b)
+    return a + b
+  end
+
+  ```
+
+  ```lua
+  Impl:OnDestroy() --Called when module start destroying (when hot reload module)
+  ```
+
+  ```lua
+  Impl:HookMethod(method, hookFn) --Hook a function at start of method. Must return value same as arguments of method
+  --Example
+
+  local testImpl = main:GetImpl("Test")
+  print(testImpl:HookHere(2))
+  --print out: 3
+
+  testImpl:HookMethod("HookHere", function(this, value)
+    print("Hook called");
+    return value
+  end)
+  print(testImpl:HookHere(2))
+  --print out: Hook called
+  --print out: 3
+
+  testImpl:HookMethod("HookHere", function(this, value)
+    print("Hook called 2");
+    return value + 1
+  end)
+  print(testImpl:HookHere(2))
+  --print out: Hook called 2
+  --print out: Hook called
+  --print out: 4 (because we was modified value = value + 1)
+  ```
+
+  ```lua
+  Impl:ReplaceMethod(method, newMethod) --Replace method with new function
+  --Example
+
+  local testImpl = main:GetImpl("Test")
+  print(testImpl:ReplaceThis(2, 3))
+  --print out: 5
+
+  testImpl:ReplaceMethod("ReplaceThis", function(this, a, b)
+    return a * b
+  end)
+  print(testImpl:ReplaceThis(2, 3))
+  --print out: 6
+  ```
+
+  ```lua
+  Impl:RefreshMethod(method) --Refresh method to original
+  --Example
+
+  local testImpl = main:GetImpl("Test")
+
+  testImpl:RefreshMethod("HookHere")
+  print(testImpl:HookHere(2))
+  --print out: 3
+
+  testImpl:RefreshMethod("ReplaceThis")
+  print(testImpl:ReplaceThis(2, 3))
+  --print out: 5
+  ```
+
+  ```lua
+  Impl:LogInfo(msg, ...) --Print log when Config.Debug == true
+  ```
+
+  ```lua
+  Impl:LogError(msg, ...) --Print log when Config.Debug == true
+  ```
+
+  ```lua
+  Impl:LogSuccess(msg, ...) --Print log when Config.Debug == true
+  ```
+
+  ```lua
+  Impl:LogWarning(msg, ...) --Print log when Config.Debug == true
+  ```
+
+  ```lua
+  Impl:Destroy() --Destroy module (Called when hot reload module)
+  ```
+
+- Impl default properties
+
+  ```lua
+  self.destroyed = false
+  self.originalMethods = {}
+  self.eventHandlers = {}
+  ```
+
+- Create Impl
+
+  #### Module name must be the same as file name
+
+  ```lua
+  local Impl = NewImpl("Test2")
+  --file name must be Test2.impl.lua
+  --Place file in client/impl for clientside and server/impl for serverside
+  ```
+
+  ```lua
+  local Impl = NewImpl("Test")
+
+  function Impl:OnReady()
+    -- Entry of module
+    self.testVar = 0
+  end
+
+  function Impl:GetData()
+    return self.data
+  end
+
+  function Impl:Add(amount, amount2)
+    self.testVar = self.testVar + amount + amount2
+    return self.testVar
+  end
+  ```
+
+# Commands
+
+```lua
+reload:<resourcename> <implname> <mode>
+--Used for hot reload a module
+--mode: 0 [default] (reload server and client) | 1 (reload only client) | 2 (reload only server)
+--Example:
+reload:lr_boilerplate Test --for reload module `Test` clientside and serverside
+reload:lr_boilerplate Test 1 --for reload module `Test` clientside
+reload:lr_boilerplate Test 2 --for reload module `Test` serverside
+```
+
+```lua
+toggledebug:<resourcename>
+--Used for toggle debug mode [modify variable Config.Debug] (print out log ...)
+```
+
+```lua
+toggledev:<resourcename>
+--Used for toggle dev mode [modify variable Config.Dev]
+```

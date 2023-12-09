@@ -1,5 +1,5 @@
 Class = {}
-
+env = IsDuplicityVersion() and "sv" or "cl"
 -- default (empty) constructor
 function Class:Init(...) end
 
@@ -92,7 +92,8 @@ end
 function Class:new(...)
 	local obj = self:extend({
     destroyed = false,
-    originalMethods = {}
+    originalMethods = {},
+		eventHandlers = {}
   })
 	if obj.Init then obj:Init(...) end
 	return obj
@@ -131,7 +132,6 @@ function Impl:HookMethod(method, hookFn)
       return
     end
     local result = {pcall(hookFn, ...)}
-    print(json.encode(result))
     local success = table.remove(result, 1)
     if not success then
       main:LogError("Impl %s hook %s error: %s", self.name, method, result[2])
@@ -163,6 +163,107 @@ function Impl:RefreshMethod(method)
     return
   end
   self[method] = self.originalMethods[method]
+end
+
+function Impl:RegisterCallback(name, cb)
+	lib.callback.register(("%s_%s:%s"):format(self.name, env, name), cb)
+end
+
+function Impl:On(name, ...)
+	if self.eventHandlers[name] then
+		return main:LogError("Event %s:%s already registered", self.name, name)
+	end
+	local handler = AddEventHandler(("%s_%s:%s"):format(self.name, env, name), ...)
+	self.eventHandlers[name] = handler
+	return handler
+end
+
+function Impl:OnNet(name, ...)
+	if self.eventHandlers[name] then
+		return main:LogError("Event %s:%s already registered", self.name, name)
+	end
+	local handler = RegisterNetEvent(("%s_%s:%s"):format(self.name, env, name), ...)
+	self.eventHandlers[name] = handler
+	return handler
+end
+
+function Impl:Off(name, handler)
+	if self.eventHandlers[name] then
+		RemoveEventHandler(self.eventHandlers[name])
+		self.eventHandlers[name] = nil
+		return;
+	end
+	main:LogError("Event %s:%s not registered", self.name, name)
+end
+
+if env == 'sv' then
+	function Impl:Callback(impl, name, source, ...)
+		if type(impl) == "object" then 
+			impl = impl:GetName()
+		end
+		if not impl then return main:LogError("param impl missing") end
+		if not name then return main:LogError("param name missing") end
+		if not source then return main:LogError("param source missing") end
+		return lib.callback.await(("%s_%s:%s"):format(impl, "cl", name), source, ...)
+	end
+	function Impl:EmitNet(impl, name, source, ...)
+		if type(impl) == "object" then 
+			impl = impl:GetName()
+		end
+		if not impl then return main:LogError("param impl missing") end
+		if not name then return main:LogError("param name missing") end
+		if not source then return main:LogError("param source missing") end
+		return TriggerClientEvent(("%s_%s:%s"):format(impl, "cl", name), source, ...)
+	end
+	function Impl:Emit(impl, name, ...)
+		if type(impl) == "object" then 
+			impl = impl:GetName()
+		end
+		if not impl then return main:LogError("param impl missing") end
+		if not name then return main:LogError("param name missing") end
+		return TriggerEvent(("%s_%s:%s"):format(impl, "sv", name), ...)
+	end
+else
+	function Impl:Callback(impl, name, ...)
+		if type(impl) == "object" then 
+			impl = impl:GetName()
+		end
+		if not impl then return main:LogError("param impl missing") end
+		if not name then return main:LogError("param name missing") end
+		return lib.callback.await(("%s_%s:%s"):format(impl, "sv", name), false, ...)
+	end
+	function Impl:Emit(impl, name, ...)
+		if type(impl) == "object" then 
+			impl = impl:GetName()
+		end
+		if not impl then return main:LogError("param impl missing") end
+		if not name then return main:LogError("param name missing") end
+		return TriggerEvent(("%s_%s:%s"):format(impl, "cl", name), ...)
+	end
+	function Impl:EmitNet(impl, name, ...)
+		if type(impl) == "object" then 
+			impl = impl:GetName()
+		end
+		if not impl then return main:LogError("param impl missing") end
+		if not name then return main:LogError("param name missing") end
+		return TriggerServerEvent(("%s_%s:%s"):format(impl, "sv", name), ...)
+	end
+end
+
+function Impl:LogInfo(msg, ...)
+	main:LogInfo("[^6"..self.name.."^0] "..msg, ...)
+end
+
+function Impl:LogError(msg, ...)
+	main:LogError("[^6"..self.name.."^0] "..msg, ...)
+end
+
+function Impl:LogSuccess(msg, ...)
+	main:LogSuccess("[^6"..self.name.."^0] "..msg, ...)
+end
+
+function Impl:LogWarning(msg, ...)
+	main:LogWarning("[^6"..self.name.."^0] "..msg, ...)
 end
 
 function NewImpl(name)

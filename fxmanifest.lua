@@ -22,17 +22,17 @@ games {
 shared_scripts {
   '@ox_lib/init.lua',
   '@es_extended/imports.lua',
+  "config.lua",
   "main.lua",
   "impl.lua",
-  "config.lua",
 }
 
 ui_page 'web/build/index.html'
 
-client_scripts { 
+--[[ client_scripts { 
   "client/classes/*",
   "client/impl/*"
-}
+} ]]
 server_script { 
   '@oxmysql/lib/MySQL.lua',
   "server/classes/*",
