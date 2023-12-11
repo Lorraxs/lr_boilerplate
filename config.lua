@@ -6,3 +6,4 @@ Config.EnableModules = {
 }
 Config.Debug = true
 Config.Nui = false
+Config.Framework = "esx" -- "qb" | "ProjectStarboy"

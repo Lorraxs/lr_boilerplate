@@ -27,7 +27,7 @@ ui_page 'web/build/index.html'
 
 shared_scripts {
   '@ox_lib/init.lua',
-  '@es_extended/imports.lua',
+  --[[ '@es_extended/imports.lua', ]]
   "config.lua",
   "main.lua",
   "impl.lua",

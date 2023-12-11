@@ -1,3 +1,10 @@
+Framework = nil
+if Config.Framework == 'esx' then 
+  Framework = exports["es_extended"]:getSharedObject()
+elseif Config.Framework == "qb" then 
+  Framework = exports['qb-core']:GetCoreObject()
+end
+
 Main = {}
 ResourceName = GetCurrentResourceName()
 local RegisteredEvents = {}
@@ -292,8 +299,16 @@ Citizen.CreateThread(function()
     Wait(100)
   end
   if not IsDuplicityVersion() then
-    while not ESX.IsPlayerLoaded() do 
-      Wait(100)
+    if Config.Framework == 'esx' then
+      while not ESX.IsPlayerLoaded() do 
+        Wait(100)
+      end
+    elseif Config.Framework == 'qb' then 
+      local player = Framework.Functions.GetPlayerData()
+      while player == nil do 
+        Wait(100)
+        player = Framework.Functions.GetPlayerData()
+      end
     end
     while not NuiReady and Config.Nui do 
       Wait(100)
