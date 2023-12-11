@@ -281,9 +281,14 @@ function Impl:LogWarning(msg, ...)
 	main:LogWarning("[^6"..self.name.."^0] "..msg, ...)
 end
 
+function Impl:GetConfig()
+	return self.config
+end
+
 function NewImpl(name)
   local impl = Impl:extend({
-    name = name
+    name = name,
+		config = Config[name] or {},
   })
   main:RegisterImpl(name, impl)
   return impl
