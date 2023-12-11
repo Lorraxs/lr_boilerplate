@@ -40,7 +40,7 @@ function Main:Init()
         local path = "client/impl/" .. k .. ".impl.lua"
         local source = LoadResourceFile(ResourceName, path)
         if source == nil then
-          self:LogError("Failed to load %s", path)
+          self:LogWarning("Failed to load %s", path)
         else
           --[[ self:LogInfo("Loading %s", path)
           self:LogInfo("Loaded %s", source) ]]
@@ -110,7 +110,7 @@ function Main:RegisterCommands()
         end
         local source = LoadResourceFile(ResourceName, "server/impl/" .. implName .. ".impl.lua")
         if source == nil then
-          self:LogError("Failed to load %s", path)
+          self:LogWarning("Failed to load %s", path)
         else
           self:LogInfo("Loading %s", implName)
           load(source)()
@@ -119,7 +119,7 @@ function Main:RegisterCommands()
       if mode == "0" or mode == "1" then
         local clSource = LoadResourceFile(ResourceName, "client/impl/" .. implName .. ".impl.lua")
         if clSource == nil then
-          self:LogError("Failed to load %s", path)
+          self:LogWarning("Failed to load %s", path)
         else
           self:LogInfo("Loading %s", "client/impl/" .. implName .. ".impl.lua")
           TriggerClientEvent(ResourceName..":restartClientImpl", -1, implName, clSource)
@@ -210,8 +210,10 @@ function Main:InitImpl()
       if v then
         self:LogInfo("Loading %s", k)
         local source = lib.callback.await(ResourceName..":getClientImpl", false, k)
-        self:LogInfo("Loaded %s", k)
-        load(source)()
+        if source ~= nil then
+          self:LogInfo("Loaded %s", k)
+          load(source)()
+        end
       end
     end
   end
@@ -296,6 +298,7 @@ Citizen.CreateThread(function()
     Citizen.Wait(0)
   end
   while Framework == nil do 
+    main:LogInfo("Waiting for Framework")
     Wait(100)
   end
   if not IsDuplicityVersion() then
