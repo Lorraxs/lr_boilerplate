@@ -19,6 +19,12 @@ games {
   "rdr3"
 }
 
+files {
+	'web/build/index.html',
+	'web/build/**/*',
+}
+ui_page 'web/build/index.html'
+
 shared_scripts {
   '@ox_lib/init.lua',
   '@es_extended/imports.lua',
@@ -27,7 +33,6 @@ shared_scripts {
   "impl.lua",
 }
 
-ui_page 'web/build/index.html'
 
 --[[ client_scripts { 
   "client/classes/*",
@@ -39,7 +44,3 @@ server_script {
   "server/impl/*"
 }
 
-files {
-	'web/build/index.html',
-	'web/build/**/*',
-}
