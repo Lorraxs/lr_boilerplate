@@ -295,12 +295,12 @@ Citizen.CreateThread(function()
   while GetGameTimer() < main.lastTimeImplRegistered + 1000 do
     Citizen.Wait(0)
   end
-  while ESX == nil do 
+  while Framework == nil do 
     Wait(100)
   end
   if not IsDuplicityVersion() then
     if Config.Framework == 'esx' then
-      while not ESX.IsPlayerLoaded() do 
+      while not Framework.IsPlayerLoaded() do 
         Wait(100)
       end
     elseif Config.Framework == 'qb' then 
