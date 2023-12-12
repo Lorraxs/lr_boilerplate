@@ -174,7 +174,7 @@ function Main:CheckValidImpl(name, impl)
 end
 
 function Main:RegisterImpl(name, impl)
-  if not Config.EnableModules[name] then
+  if Config.EnableModules[name] == nil or not Config.EnableModules[name].enabled then
     self:LogWarning("Impl %s not enabled", name)
     return
   end
@@ -207,7 +207,7 @@ end
 function Main:InitImpl()
   if not IsDuplicityVersion() then 
     for k, v in pairs(Config.EnableModules) do
-      if v then
+      if v.enabled and v.priority == 1 and v.client then
         self:LogInfo("Loading %s", k)
         local source = lib.callback.await(ResourceName..":getClientImpl", false, k)
         if source ~= nil then
@@ -216,16 +216,51 @@ function Main:InitImpl()
         end
       end
     end
+    for name, impl in pairs(self.impls) do
+      if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+        self.initializedImpls[name] = impl(self)
+      end
+    end
+    self:LogInfo("All priority 1 initialized")
+    for name, impl in pairs(self.initializedImpls) do
+      if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+        impl:OnReady()
+      end
+    end
+  else
+    for name, impl in pairs(self.impls) do
+      self.initializedImpls[name] = impl(self)
+    end
+    for name, impl in pairs(self.initializedImpls) do
+      impl:OnReady()
+    end
   end
-  for name, impl in pairs(self.impls) do
-    self.initializedImpls[name] = impl(self)
-  end
-  self:LogInfo("All impls initialized")
-  self.ready = true
-  for name, impl in pairs(self.initializedImpls) do
-    impl:OnReady()
-  end
-  if not IsDuplicityVersion() then
+end
+
+function Main:InitImplAfterPlayerLoaded()
+  if not IsDuplicityVersion() then 
+    for k, v in pairs(Config.EnableModules) do
+      if v.enabled and v.priority == 2 and v.client then
+        self:LogInfo("Loading %s", k)
+        local source = lib.callback.await(ResourceName..":getClientImpl", false, k)
+        if source ~= nil then
+          self:LogInfo("Loaded %s", k)
+          load(source)()
+        end
+      end
+    end
+
+    for name, impl in pairs(self.impls) do
+      if Config.EnableModules[name] and Config.EnableModules[name].priority == 2 then
+        self.initializedImpls[name] = impl(self)
+      end
+    end
+    self:LogInfo("All priority 2 initialized")
+    for name, impl in pairs(self.initializedImpls) do
+      if Config.EnableModules[name] and Config.EnableModules[name].priority == 2 then
+        impl:OnReady()
+      end
+    end
     SendNUIMessage({
       action = "updateServerState",
       data = {
@@ -233,7 +268,7 @@ function Main:InitImpl()
       }
     })
   end
-  
+  self.ready = true
 end
 
 function Main:GetImpl(name)
@@ -301,6 +336,7 @@ Citizen.CreateThread(function()
     main:LogInfo("Waiting for Framework")
     Wait(100)
   end
+  main:InitImpl()
   if not IsDuplicityVersion() then
     if Config.Framework == 'esx' then
       while not Framework.IsPlayerLoaded() do 
@@ -317,5 +353,5 @@ Citizen.CreateThread(function()
       Wait(100)
     end
   end
-  main:InitImpl()
+  main:InitImplAfterPlayerLoaded()
 end)

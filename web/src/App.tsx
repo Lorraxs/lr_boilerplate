@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Provider, useSelector } from 'react-redux';
 import { AppActions, RootState, store } from './store';
 import { ToastContainer } from 'react-toastify';
 import { Box } from 'lr-components';
 import { NextUIProvider } from '@nextui-org/react';
 import AppActionHook from './components/AppActionHook';
+import { isEnvBrowser } from './utils/misc';
+import { fetchNui } from './utils/fetchNui';
 
 function App() {
   const show = useSelector((state: RootState) => state.state.show);
+  useEffect(() => {
+    if (!isEnvBrowser()) {
+      setTimeout(() => {
+        fetchNui('AppReady');
+      }, 2000);
+    }
+  }, []);
   return (
     show && (
       <NextUIProvider>
