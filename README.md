@@ -38,17 +38,19 @@ _The boilerplate was made using `yarn` but is still compatible with
 Install dependencies by navigating to the `web` folder within
 a terminal of your choice and type `npm i` or `yarn`.
 
-## Features
-
 # Enable modules in Config.EnableModules
 
 ```lua
 Config.EnableModules = {
-  ["Newbie"] = false,
-  ["DamageLog"] = true,
-  ["Hud"] = true,
-  ['Player'] = true,
-  ['Speedometer'] = true
+  ["Newbie"] = {
+    enabled = true,
+    client = true, -- enable client side
+    priority = 1, -- 1 : init on start | 2 : init on player loaded
+  },
+  ["Test"] = {
+    enabled = true,
+    priority = 2, -- 1 : init on start | 2 : init on player loaded
+  },
 }
 Config.Debug = true -- print log
 Config.Dev = false
