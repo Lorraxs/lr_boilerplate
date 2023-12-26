@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Provider, useSelector } from 'react-redux';
-import { AppActions, RootState, store } from './store';
+import { useSelector } from 'react-redux';
+import { AppActions, RootState } from './store';
 import { ToastContainer } from 'react-toastify';
 import { Box } from 'lr-components';
 import { NextUIProvider } from '@nextui-org/react';
@@ -9,7 +9,7 @@ import { isEnvBrowser } from './utils/misc';
 import { fetchNui } from './utils/fetchNui';
 
 function App() {
-  const show = useSelector((state: RootState) => state.state.show);
+  const show = useSelector((state: RootState) => state.main.show);
   useEffect(() => {
     if (!isEnvBrowser()) {
       setTimeout(() => {
@@ -20,38 +20,36 @@ function App() {
   return (
     show && (
       <NextUIProvider>
-        <Provider store={store}>
-          <Box
-            display='flex'
-            position='absolute'
-            flexWrap='wrap'
-            justifyContent='center'
-            alignItems='center'
-            flexDirection='column'
-            width={'50%'}
-            height={'50%'}
-            rGap={10}
-          >
-            {Object.keys(AppActions).map((action) => {
-              return (
-                <AppActionHook
-                  action={action as keyof typeof AppActions}
-                ></AppActionHook>
-              );
-            })}
-          </Box>
-          <Box
-            width={'100%'}
-            height={'100%'}
-            display='flex'
-            justifyContent='center'
-            alignItems='center'
-            className='prose'
-            pointerEvents='none'
-          ></Box>
+        <Box
+          display='flex'
+          position='absolute'
+          flexWrap='wrap'
+          justifyContent='center'
+          alignItems='center'
+          flexDirection='column'
+          width={'50%'}
+          height={'50%'}
+          rGap={10}
+        >
+          {Object.keys(AppActions).map((action) => {
+            return (
+              <AppActionHook
+                action={action as keyof typeof AppActions}
+              ></AppActionHook>
+            );
+          })}
+        </Box>
+        <Box
+          width={'100%'}
+          height={'100%'}
+          display='flex'
+          justifyContent='center'
+          alignItems='center'
+          className='prose'
+          pointerEvents='none'
+        ></Box>
 
-          <ToastContainer pauseOnFocusLoss={false} hideProgressBar={true} />
-        </Provider>
+        <ToastContainer pauseOnFocusLoss={false} hideProgressBar={true} />
       </NextUIProvider>
     )
   );
