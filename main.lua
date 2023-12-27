@@ -1,14 +1,20 @@
 Framework = nil
-if Config.Framework == 'esx' then 
+if Config.Framework == 'esx' then
   Framework = exports["es_extended"]:getSharedObject()
-elseif Config.Framework == "qb" then 
+elseif Config.Framework == "qb" then
   Framework = exports['qb-core']:GetCoreObject()
+else
+  Framework = {}
+  Framework.Functions = {}
+  Framework.Functions.GetPlayerData = function()
+    return {}
+  end
 end
 
 Main = {}
 ResourceName = GetCurrentResourceName()
 local RegisteredEvents = {}
-if IsDuplicityVersion() then 
+if IsDuplicityVersion() then
   function GetGameTimer()
     return os.clock() * 1000
   end
@@ -20,7 +26,7 @@ else
 end
 function Main:Init()
   local o = {}
-  setmetatable(o, {__index = Main})
+  setmetatable(o, { __index = Main })
   o.impls = {}
   o.initializedImpls = {}
   o.lastTimeImplRegistered = 0
@@ -32,7 +38,6 @@ function Main:Init()
     o.playerHeading = GetEntityHeading(o.playerPed)
     o.playerServerId = GetPlayerServerId(o.playerId)
     o:Thread1()
-    
   else
     o.ClientImpls = {}
     for k, v in pairs(Config.EnableModules) do
@@ -48,7 +53,7 @@ function Main:Init()
         end
       end
     end
-    lib.callback.register(ResourceName..":getClientImpl", function(source, implName)
+    lib.callback.register(ResourceName .. ":getClientImpl", function(source, implName)
       return o.ClientImpls[implName]
     end)
   end
@@ -57,6 +62,7 @@ function Main:Init()
   o:RegisterEvents()
   return o
 end
+
 if not IsDuplicityVersion() then
   function Main:Thread1()
     Citizen.CreateThread(function()
@@ -73,11 +79,11 @@ end
 
 function Main:RegisterCommands()
   if not IsDuplicityVersion() then
-    RegisterCommand("toggledebug:"..ResourceName, function(source, args, rawCommand)
+    RegisterCommand("toggledebug:" .. ResourceName, function(source, args, rawCommand)
       Config.Debug = not Config.Debug
       self:LogInfo("Debug %s", Config.Debug)
-    end)
-    RegisterCommand("toggledev:"..ResourceName, function(source, args, rawCommand)
+    end, false)
+    RegisterCommand("toggledev:" .. ResourceName, function(source, args, rawCommand)
       Config.Dev = not Config.Dev
       self:LogInfo("Dev %s", Config.Dev)
       SendNUIMessage({
@@ -86,18 +92,19 @@ function Main:RegisterCommands()
           isDev = Config.Dev,
         }
       })
-    end)
-    RegisterCommand("implinfo:"..ResourceName, function(source, args, rawCommand)
+    end, false)
+    RegisterCommand("implinfo:" .. ResourceName, function(source, args, rawCommand)
       self:ImplInfo()
-    end)
+    end, false)
     RegisterCommand("test", function()
       TriggerEvent("test")
-    end)
+    end, false)
   else
-    RegisterCommand("reload:"..ResourceName, function(source, args, rawCommand)
+    RegisterCommand("reload:" .. ResourceName, function(source, args, rawCommand)
+      if Config.ClientLazyLoad == false then return print("Lazyload was disabled") end
       local implName = args[1]
       local mode = args[2]
-      if mode == nil then 
+      if mode == nil then
         mode = "0"
       end
       self:LogInfo("Restarting impl: %s | side: %s (0: both, 1: client, 2: server)", implName, mode)
@@ -122,7 +129,7 @@ function Main:RegisterCommands()
           self:LogWarning("Failed to load %s", path)
         else
           self:LogInfo("Loading %s", "client/impl/" .. implName .. ".impl.lua")
-          TriggerClientEvent(ResourceName..":restartClientImpl", -1, implName, clSource)
+          TriggerClientEvent(ResourceName .. ":restartClientImpl", -1, implName, clSource)
         end
       end
     end, true)
@@ -130,7 +137,7 @@ function Main:RegisterCommands()
 end
 
 function Main:RegisterEvents()
-  RegisterNetEvent(ResourceName..":restartClientImpl", function(implName, source)
+  RegisterNetEvent(ResourceName .. ":restartClientImpl", function(implName, source)
     local clImpl = self:GetImpl(implName)
     if clImpl then
       clImpl:Destroy()
@@ -187,9 +194,9 @@ function Main:RegisterImpl(name, impl)
   end
   self.impls[name] = impl
   self.lastTimeImplRegistered = GetGameTimer()
-  
+
   self:LogSuccess("Impl %s registered", name)
-  if self.ready then 
+  if self.ready then
     Citizen.CreateThread(function()
       self:LogSuccess("Impl %s hot reloading", name)
       Wait(1000)
@@ -205,26 +212,40 @@ function Main:RegisterImpl(name, impl)
 end
 
 function Main:InitImpl()
-  if not IsDuplicityVersion() then 
-    for k, v in pairs(Config.EnableModules) do
-      if v.enabled and v.priority == 1 and v.client then
-        self:LogInfo("Loading %s", k)
-        local source = lib.callback.await(ResourceName..":getClientImpl", false, k)
-        if source ~= nil then
-          self:LogInfo("Loaded %s", k)
-          load(source)()
+  if not IsDuplicityVersion() then
+    if Config.ClientLazyLoad then
+      for k, v in pairs(Config.EnableModules) do
+        if v.enabled and v.priority == 1 and v.client then
+          self:LogInfo("Loading %s", k)
+          local source = lib.callback.await(ResourceName .. ":getClientImpl", false, k)
+          if source ~= nil then
+            self:LogInfo("Loaded %s", k)
+            load(source)()
+          end
         end
       end
-    end
-    for name, impl in pairs(self.impls) do
-      if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
-        self.initializedImpls[name] = impl(self)
+      for name, impl in pairs(self.impls) do
+        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+          self.initializedImpls[name] = impl(self)
+        end
       end
-    end
-    self:LogInfo("All priority 1 initialized")
-    for name, impl in pairs(self.initializedImpls) do
-      if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
-        impl:OnReady()
+      self:LogInfo("All priority 1 initialized")
+      for name, impl in pairs(self.initializedImpls) do
+        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+          impl:OnReady()
+        end
+      end
+    else
+      for name, impl in pairs(self.impls) do
+        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+          self.initializedImpls[name] = impl(self)
+        end
+      end
+      self:LogInfo("All priority 1 initialized")
+      for name, impl in pairs(self.initializedImpls) do
+        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+          impl:OnReady()
+        end
       end
     end
   else
@@ -238,14 +259,20 @@ function Main:InitImpl()
 end
 
 function Main:InitImplAfterPlayerLoaded()
-  if not IsDuplicityVersion() then 
+  if not IsDuplicityVersion() then
     for k, v in pairs(Config.EnableModules) do
       if v.enabled and v.priority == 2 and v.client then
         self:LogInfo("Loading %s", k)
-        local source = lib.callback.await(ResourceName..":getClientImpl", false, k)
-        if source ~= nil then
-          self:LogInfo("Loaded %s", k)
-          load(source)()
+        if Config.ClientLazyLoad then
+          local source = lib.callback.await(ResourceName .. ":getClientImpl", false, k)
+          if source ~= nil then
+            self:LogInfo("Loaded %s", k)
+            load(source)()
+          end
+        else
+          if self.initializedImpls[k] then
+            self.initializedImpls[k]:OnReady()
+          end
         end
       end
     end
@@ -285,12 +312,11 @@ function Main:ImplCall(name, func, ...)
     return
   end
   if not impl[func] then
-    self:LogError("Impl %s missing function %s - args %s", name, func, json.encode({...}))
+    self:LogError("Impl %s missing function %s - args %s", name, func, json.encode({ ... }))
     return
   end
   return impl[func](impl, ...)
 end
-
 
 function Main:ImplInfo()
   for name, impl in pairs(self.impls) do
@@ -309,47 +335,46 @@ main = Main:Init()
 
 local origAddEventHandler = AddEventHandler
 function AddEventHandler(eventName, ...)
-  if  RegisteredEvents[eventName] then
+  if RegisteredEvents[eventName] then
     main:LogWarning("Event %s already registered. Removing", eventName)
     RemoveEventHandler(RegisteredEvents[eventName])
   end
   RegisteredEvents[eventName] = origAddEventHandler(eventName, ...)
-  return RegisteredEvents[eventName] 
+  return RegisteredEvents[eventName]
 end
 
 local origRegisterNetEvent = RegisterNetEvent
 function RegisterNetEvent(eventName, ...)
-  if  RegisteredEvents[eventName] then
+  if RegisteredEvents[eventName] then
     main:LogWarning("Event %s already registered. Removing", eventName)
     RemoveEventHandler(RegisteredEvents[eventName])
   end
   RegisteredEvents[eventName] = origRegisterNetEvent(eventName, ...)
-  return RegisteredEvents[eventName] 
+  return RegisteredEvents[eventName]
 end
 
 Citizen.CreateThread(function()
-
   while GetGameTimer() < main.lastTimeImplRegistered + 1000 do
     Citizen.Wait(0)
   end
-  while Framework == nil do 
+  while Framework == nil do
     main:LogInfo("Waiting for Framework")
     Wait(100)
   end
   main:InitImpl()
   if not IsDuplicityVersion() then
     if Config.Framework == 'esx' then
-      while not Framework.IsPlayerLoaded() do 
+      while not Framework.IsPlayerLoaded() do
         Wait(100)
       end
-    elseif Config.Framework == 'qb' then 
+    elseif Config.Framework == 'qb' then
       local player = Framework.Functions.GetPlayerData()
-      while player == nil do 
+      while player == nil do
         Wait(100)
         player = Framework.Functions.GetPlayerData()
       end
     end
-    while not NuiReady and Config.Nui do 
+    while not NuiReady and Config.Nui do
       Wait(100)
     end
   end
