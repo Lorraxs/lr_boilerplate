@@ -20,7 +20,7 @@ if IsDuplicityVersion() then
   end
 else
   RegisterNUICallback('AppReady', function(data, cb)
-    cb({})
+    cb(Config.UISetting or {})
     NuiReady = true
   end)
 end
