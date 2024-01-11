@@ -35,7 +35,7 @@ function Class:extend(obj)
 		return self:new(...)
 	end
 
-	-- allow for getters and setters
+	--[[ -- allow for getters and setters
 	mt.__index = function(table, key)
 		local val = rawget(table._, key)
 		--print(key, type(val))
@@ -70,7 +70,7 @@ function Class:extend(obj)
 		else
 			table._[key] = value
 		end
-	end
+	end ]]
 
 	setmetatable(obj, mt)
 
