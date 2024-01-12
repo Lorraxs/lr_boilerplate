@@ -1,6 +1,6 @@
 Config = {}
 
-Config.UISetting = {
+Config.Settings = {
   locale = {}
 }
 
@@ -21,3 +21,11 @@ Config.Nui = false
 Config.Dev = false
 Config.Framework = "custom" -- "qb" | "esx" | "custom"
 Config.ClientLazyLoad = false
+
+function L(key, ...)
+  if Config.Settings.locale[key] then
+    return string.format(Config.Settings.locale[key], ...)
+  else
+    return key
+  end
+end
