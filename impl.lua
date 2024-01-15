@@ -292,6 +292,7 @@ function NewImpl(name)
 	local impl = Impl:extend({
 		name = name,
 		config = Config[name] or {},
+		implType = "impl"
 	})
 	main:RegisterImpl(name, impl)
 	return impl

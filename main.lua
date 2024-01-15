@@ -181,7 +181,7 @@ function Main:CheckValidImpl(name, impl)
 end
 
 function Main:RegisterImpl(name, impl)
-  if Config.EnableModules[name] == nil or not Config.EnableModules[name].enabled then
+  if impl.implType == "impl" and (Config.EnableModules[name] == nil or not Config.EnableModules[name].enabled) then
     self:LogWarning("Impl %s not enabled", name)
     return
   end
@@ -225,25 +225,25 @@ function Main:InitImpl()
         end
       end
       for name, impl in pairs(self.impls) do
-        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+        if impl.implType ~= "impl" or (Config.EnableModules[name] and Config.EnableModules[name].priority == 1) then
           self.initializedImpls[name] = impl(self)
         end
       end
       self:LogInfo("All priority 1 initialized")
       for name, impl in pairs(self.initializedImpls) do
-        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+        if impl.implType ~= "impl" or (Config.EnableModules[name] and Config.EnableModules[name].priority == 1) then
           impl:OnReady()
         end
       end
     else
       for name, impl in pairs(self.impls) do
-        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+        if impl.implType ~= "impl" or (Config.EnableModules[name] and Config.EnableModules[name].priority == 1) then
           self.initializedImpls[name] = impl(self)
         end
       end
       self:LogInfo("All priority 1 initialized")
       for name, impl in pairs(self.initializedImpls) do
-        if Config.EnableModules[name] and Config.EnableModules[name].priority == 1 then
+        if impl.implType ~= "impl" or (Config.EnableModules[name] and Config.EnableModules[name].priority == 1) then
           impl:OnReady()
         end
       end
@@ -333,7 +333,7 @@ end
 
 main = Main:Init()
 
-local origAddEventHandler = AddEventHandler
+--[[ local origAddEventHandler = AddEventHandler
 function AddEventHandler(eventName, ...)
   if RegisteredEvents[eventName] then
     main:LogWarning("Event %s already registered. Removing", eventName)
@@ -351,7 +351,7 @@ function RegisterNetEvent(eventName, ...)
   end
   RegisteredEvents[eventName] = origRegisterNetEvent(eventName, ...)
   return RegisteredEvents[eventName]
-end
+end ]]
 
 Citizen.CreateThread(function()
   while GetGameTimer() < main.lastTimeImplRegistered + 1000 do
