@@ -20,7 +20,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '18.x'
-          cache: 'yarn'
       - name: Install dependencies NUI
         working-directory: ./web
         run: yarn install --frozen-lockfile
