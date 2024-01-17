@@ -20,19 +20,19 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '18.x'
+          cache: 'yarn'
       - name: Install dependencies NUI
         working-directory: ./web
         run: yarn install --frozen-lockfile
       - name: Build Bundles
         working-directory: ./web
         run: yarn build
+        - name: Zip Folder
+      run: zip -r ${{ github.event.repository.name }}.zip . -x ".git/*" ".github/*" "phpcs.xml" "composer.json" "composer.lock" ".gitignore"  ".vscode/*" "node_modules/*"
       - uses: 'marvinpinto/action-automatic-releases@latest'
         with:
           repo_token: '${{ secrets.GITHUB_TOKEN }}'
           automatic_release_tag: 'latest'
           prerelease: false
           files: |
-            web/build/*
-            *.lua
-            steam/*
-            *.md
+            *.zip
