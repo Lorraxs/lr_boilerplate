@@ -26,11 +26,12 @@ jobs:
       - name: Build Bundles
         working-directory: ./web
         run: yarn build
-      - uses: CupOfTea696/gh-action-auto-release@v1.0.0
+      - uses: 'marvinpinto/action-automatic-releases@latest'
         with:
-          title: 'Release: $version'
-          tag: 'v$semver'
-          draft: false
-          regex: '/^Release: #{semver}$/i'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          prerelease: false
+          files: |
+            web/build/*
+            *.lua
+            steam/*
+            *.md
