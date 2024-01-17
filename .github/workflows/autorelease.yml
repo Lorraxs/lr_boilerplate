@@ -21,8 +21,10 @@ jobs:
         with:
           node-version: '18.x'
       - name: Install dependencies NUI
-        run: cd web && yarn install --frozen-lockfile
+        working-directory: ./web
+        run: yarn install --frozen-lockfile
       - name: Build Bundles
+        working-directory: ./web
         run: yarn build
       - uses: CupOfTea696/gh-action-auto-release@v1.0.0
         with:
