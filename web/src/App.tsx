@@ -38,6 +38,7 @@ function App() {
         {Object.keys(AppActions).map((action) => {
           return (
             <AppActionHook
+              key={action}
               action={action as keyof typeof AppActions}
             ></AppActionHook>
           );
@@ -45,8 +46,11 @@ function App() {
       </Box>
       {show && (
         <Box
-          width={'100%'}
-          height={'100%'}
+          width={'100vw'}
+          height={'100vh'}
+          position='absolute'
+          top={0}
+          left={0}
           display='flex'
           justifyContent='center'
           alignItems='center'
