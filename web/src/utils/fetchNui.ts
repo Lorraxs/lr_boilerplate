@@ -1,4 +1,5 @@
-import { isEnvBrowser } from "./misc";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { isEnvBrowser } from './misc';
 
 /**
  * Simple wrapper around fetch API tailored for CEF/NUI use. This abstraction
@@ -15,12 +16,12 @@ import { isEnvBrowser } from "./misc";
 export async function fetchNui<T = unknown>(
   eventName: string,
   data?: unknown,
-  mockData?: T,
+  mockData?: T
 ): Promise<T> {
   const options = {
-    method: "post",
+    method: 'post',
     headers: {
-      "Content-Type": "application/json; charset=UTF-8",
+      'Content-Type': 'application/json; charset=UTF-8',
     },
     body: JSON.stringify(data),
   };
@@ -29,7 +30,7 @@ export async function fetchNui<T = unknown>(
 
   const resourceName = (window as any).GetParentResourceName
     ? (window as any).GetParentResourceName()
-    : "nui-frame-app";
+    : 'nui-frame-app';
 
   const resp = await fetch(`https://${resourceName}/${eventName}`, options);
 

@@ -17,3 +17,15 @@ export type AsyncThunkConfig = {
   /** type to be passed into the second argument of `rejectWithValue` to finally be merged into `rejectedAction.meta` */
   rejectedMeta?: unknown;
 };
+
+export type IResponseSuccess<T = unknown> = {
+  status: 'success';
+  data: T;
+};
+
+export type IResponseError = {
+  status: 'error';
+  data: string;
+};
+
+export type IResponse<T = unknown> = IResponseSuccess<T> | IResponseError;
