@@ -8,7 +8,7 @@ import { isEnvBrowser } from './utils/misc';
 import { fetchNui } from './utils/fetchNui';
 import { DefaultUISetting, ISettingContext, UISetting } from './types';
 
-const SettingContext = createContext<ISettingContext>(DefaultUISetting);
+export const SettingContext = createContext<ISettingContext>(DefaultUISetting);
 
 function App() {
   const show = useSelector((state: RootState) => state.main.show);

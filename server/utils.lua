@@ -6,7 +6,7 @@ function Response(isSuccess, errorMessage, data)
     }
   end
   return {
-    status = "ok",
+    status = "success",
     data = data
   }
 end
