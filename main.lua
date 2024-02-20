@@ -30,6 +30,7 @@ function Main:Init()
   o.impls = {}
   o.initializedImpls = {}
   o.lastTimeImplRegistered = 0
+  o.onReadyCallbacks = {}
   o.ready = false
   if not IsDuplicityVersion() then
     o.playerId = PlayerId()
@@ -61,6 +62,11 @@ function Main:Init()
   o:RegisterCommands()
   o:RegisterEvents()
   return o
+end
+
+function Main:ListenOnReady(handler)
+  if self.ready then return handler() end
+  table.insert(self.onReadyCallbacks, handler)
 end
 
 if not IsDuplicityVersion() then
@@ -296,6 +302,10 @@ function Main:InitImplAfterPlayerLoaded()
     })
   end
   self.ready = true
+  for k, v in ipairs(self.onReadyCallbacks) do
+    v()
+  end
+  self.onReadyCallbacks = {}
 end
 
 function Main:GetImpl(name)
@@ -332,6 +342,10 @@ function Main:Exports()
 end
 
 main = Main:Init()
+
+AddEventHandler(("%s:onReady"):format(GetCurrentGameName()), function(handler)
+  main:ListenOnReady(handler)
+end)
 
 --[[ local origAddEventHandler = AddEventHandler
 function AddEventHandler(eventName, ...)
