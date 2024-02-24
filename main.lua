@@ -218,6 +218,15 @@ function Main:RegisterImpl(name, impl)
 end
 
 function Main:InitImpl()
+  if Config.Dependencies then
+    for k, v in ipairs(Config.Dependencies) do
+      local p = promise.new()
+      TriggerEvent(('%s:onReady'):format(v), function()
+        p:resolve()
+      end)
+      Citizen.Await(p)
+    end
+  end
   if not IsDuplicityVersion() then
     if Config.ClientLazyLoad then
       for k, v in pairs(Config.EnableModules) do
@@ -342,8 +351,9 @@ function Main:Exports()
 end
 
 main = Main:Init()
-
-AddEventHandler(("%s:onReady"):format(GetCurrentGameName()), function(handler)
+AddEventHandler(("%s:onReady"):format(GetCurrentResourceName()), function(handler)
+  local invokingResource = GetInvokingResource()
+  main:LogInfo(invokingResource)
   main:ListenOnReady(handler)
 end)
 

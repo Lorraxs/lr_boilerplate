@@ -1,5 +1,7 @@
 Config = {}
 
+Config.Dependencies = {} -- Reqired resources loaded to start
+
 Config.Settings = {
   locale = {}
 }
