@@ -12,12 +12,10 @@ const mainSlice = createSlice({
   name: 'main',
   initialState,
   reducers: {
-    toggleShow(state) {
-      state.show = !state.show;
+    setShow(state, action) {
+      state.show = action.payload;
     },
   },
 });
-
-export const { toggleShow } = mainSlice.actions;
 
 export default mainSlice;
