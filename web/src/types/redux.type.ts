@@ -21,11 +21,12 @@ export type AsyncThunkConfig = {
 export type IResponseSuccess<T = unknown> = {
   status: 'success';
   data: T;
+  message?: string;
 };
 
 export type IResponseError = {
   status: 'error';
-  data: string;
+  message: string;
 };
 
 export type IResponse<T = unknown> = IResponseSuccess<T> | IResponseError;

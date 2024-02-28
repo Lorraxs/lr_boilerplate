@@ -1,5 +1,6 @@
 // Will return whether the current environment is in a regular browser
 
+import { toast } from 'react-toastify';
 import { IResponse, IResponseSuccess } from '../types';
 
 // and not CEF
@@ -17,6 +18,9 @@ export const GuardResponse = (
   response: IResponse
 ): response is IResponseSuccess => {
   if (!response) return false;
-  if (response.status === 'error') throw new Error(response.data);
+  if (response.status === 'error') throw new Error(response.message);
+  if (response.message) {
+    toast.success(response.message);
+  }
   return response.status === 'success';
 };

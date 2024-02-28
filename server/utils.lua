@@ -1,12 +1,13 @@
-function Response(isSuccess, errorMessage, data)
+function Response(isSuccess, message, data)
   if not isSuccess then
     return {
       status = "error",
-      data = errorMessage
+      message = message
     }
   end
   return {
     status = "success",
-    data = data
+    data = data,
+    message = message
   }
 end
