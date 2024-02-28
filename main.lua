@@ -3,6 +3,8 @@ if Config.Framework == 'esx' then
   Framework = exports["es_extended"]:getSharedObject()
 elseif Config.Framework == "qb" then
   Framework = exports['qb-core']:GetCoreObject()
+elseif Config.Framework == "ProjectStarboy" then
+  Framework = CORE
 else
   Framework = {}
   Framework.Functions = {}
