@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import { isEnvBrowser } from './utils/misc';
 import { NextUIProvider } from '@nextui-org/react';
+import 'react-toastify/dist/ReactToastify.css';
 
 const root = document.getElementById('root');
 if (isEnvBrowser()) {
