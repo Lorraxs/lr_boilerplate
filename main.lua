@@ -157,12 +157,10 @@ function Main:RegisterEvents()
 end
 
 function Main:LogError(msg, ...)
-  if not Config.Debug then return end
   print(("[^1ERROR^0] " .. msg):format(...))
 end
 
 function Main:LogWarning(msg, ...)
-  if not Config.Debug then return end
   print(("[^3WARNING^0] " .. msg):format(...))
 end
 
