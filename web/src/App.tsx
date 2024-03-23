@@ -20,6 +20,15 @@ function App() {
         const UISetting = await fetchNui<UISetting>('AppReady');
         setSetting(UISetting);
       }, 2000);
+      const keyHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          fetchNui('close');
+        }
+      };
+      window.addEventListener('keydown', keyHandler);
+      return () => {
+        window.removeEventListener('keydown', keyHandler);
+      };
     }
   }, [setSetting]);
   return (
