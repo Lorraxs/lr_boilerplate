@@ -34,7 +34,7 @@ jobs:
       - uses: 'marvinpinto/action-automatic-releases@latest'
         with:
           repo_token: '${{ secrets.GITHUB_TOKEN }}'
-          title: ${{ github.event.head_commit.message }}
+          title: 'v${{ steps.versioning.outputs.tag }}'
           automatic_release_tag: ${{ steps.versioning.outputs.tag }}
           prerelease: false
           files: |
