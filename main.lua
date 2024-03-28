@@ -42,23 +42,25 @@ function Main:Init()
     o.playerServerId = GetPlayerServerId(o.playerId)
     o:Thread1()
   else
-    o.ClientImpls = {}
-    for k, v in pairs(Config.EnableModules) do
-      if v then
-        local path = "client/impl/" .. k .. ".impl.lua"
-        local source = LoadResourceFile(ResourceName, path)
-        if source == nil then
-          self:LogWarning("Failed to load %s", path)
-        else
-          --[[ self:LogInfo("Loading %s", path)
-          self:LogInfo("Loaded %s", source) ]]
-          o.ClientImpls[k] = source
+    if Config.ClientLazyLoad then
+      o.ClientImpls = {}
+      for k, v in pairs(Config.EnableModules) do
+        if v then
+          local path = "client/impl/" .. k .. ".impl.lua"
+          local source = LoadResourceFile(ResourceName, path)
+          if source == nil then
+            self:LogWarning("Failed to load %s", path)
+          else
+            --[[ self:LogInfo("Loading %s", path)
+            self:LogInfo("Loaded %s", source) ]]
+            o.ClientImpls[k] = source
+          end
         end
       end
+      lib.callback.register(ResourceName .. ":getClientImpl", function(source, implName)
+        return o.ClientImpls[implName]
+      end)
     end
-    lib.callback.register(ResourceName .. ":getClientImpl", function(source, implName)
-      return o.ClientImpls[implName]
-    end)
   end
   o:Exports()
   o:RegisterCommands()
