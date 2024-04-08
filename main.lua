@@ -13,6 +13,9 @@ else
   end
 end
 
+---@class Main
+---@field impls table<string, Impl>
+---@field initializedImpls table<string, Impl>
 Main = {}
 ResourceName = GetCurrentResourceName()
 local RegisteredEvents = {}
@@ -26,6 +29,9 @@ else
     NuiReady = true
   end)
 end
+
+---Init main class
+---@return Main
 function Main:Init()
   local o = {}
   setmetatable(o, { __index = Main })
@@ -42,25 +48,23 @@ function Main:Init()
     o.playerServerId = GetPlayerServerId(o.playerId)
     o:Thread1()
   else
-    if Config.ClientLazyLoad then
-      o.ClientImpls = {}
-      for k, v in pairs(Config.EnableModules) do
-        if v then
-          local path = "client/impl/" .. k .. ".impl.lua"
-          local source = LoadResourceFile(ResourceName, path)
-          if source == nil then
-            self:LogWarning("Failed to load %s", path)
-          else
-            --[[ self:LogInfo("Loading %s", path)
-            self:LogInfo("Loaded %s", source) ]]
-            o.ClientImpls[k] = source
-          end
+    o.ClientImpls = {}
+    for k, v in pairs(Config.EnableModules) do
+      if v then
+        local path = "client/impl/" .. k .. ".impl.lua"
+        local source = LoadResourceFile(ResourceName, path)
+        if source == nil then
+          self:LogWarning("Failed to load %s", path)
+        else
+          --[[ self:LogInfo("Loading %s", path)
+          self:LogInfo("Loaded %s", source) ]]
+          o.ClientImpls[k] = source
         end
       end
-      lib.callback.register(ResourceName .. ":getClientImpl", function(source, implName)
-        return o.ClientImpls[implName]
-      end)
     end
+    lib.callback.register(ResourceName .. ":getClientImpl", function(source, implName)
+      return o.ClientImpls[implName]
+    end)
   end
   o:Exports()
   o:RegisterCommands()
@@ -75,6 +79,7 @@ end
 
 if not IsDuplicityVersion() then
   function Main:Thread1()
+    self.playerServerId = GetPlayerServerId(self.playerId)
     Citizen.CreateThread(function()
       while true do
         self.playerId = PlayerId()
@@ -127,7 +132,7 @@ function Main:RegisterCommands()
         end
         local source = LoadResourceFile(ResourceName, "server/impl/" .. implName .. ".impl.lua")
         if source == nil then
-          self:LogWarning("Failed to load %s", path)
+          self:LogWarning("Failed to load %s", ResourceName, "server/impl/" .. implName .. ".impl.lua")
         else
           self:LogInfo("Loading %s", implName)
           load(source)()
@@ -136,7 +141,7 @@ function Main:RegisterCommands()
       if mode == "0" or mode == "1" then
         local clSource = LoadResourceFile(ResourceName, "client/impl/" .. implName .. ".impl.lua")
         if clSource == nil then
-          self:LogWarning("Failed to load %s", path)
+          self:LogWarning("Failed to load %s", ResourceName, "client/impl/" .. implName .. ".impl.lua")
         else
           self:LogInfo("Loading %s", "client/impl/" .. implName .. ".impl.lua")
           TriggerClientEvent(ResourceName .. ":restartClientImpl", -1, implName, clSource)

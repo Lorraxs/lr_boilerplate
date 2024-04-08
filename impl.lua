@@ -1,9 +1,15 @@
+---@class Class
+---@field destroyed boolean
+---@field originalMethods table
+---@field eventHandlers table
 Class = {}
 env = IsDuplicityVersion() and "sv" or "cl"
 -- default (empty) constructor
 function Class:Init(...) end
 
--- create a subclass
+---comment
+---@param obj any
+---@return any
 function Class:extend(obj)
 	local obj = obj or {}
 
@@ -81,9 +87,11 @@ end
 function Class:set(prop, value)
 	if not value and type(prop) == "table" then
 		for k, v in pairs(prop) do
+			---@diagnostic disable-next-line: undefined-field
 			rawset(self._, k, v)
 		end
 	else
+		---@diagnostic disable-next-line: undefined-field
 		rawset(self._, prop, value)
 	end
 end
@@ -99,11 +107,16 @@ function Class:new(...)
 	return obj
 end
 
+---@diagnostic disable-next-line: lowercase-global
 function class(attr)
 	attr = attr or {}
 	return Class:extend(attr)
 end
 
+---@class Impl:Class
+---@field name string
+---@field config table
+---@field implType "impl"
 Impl = class()
 
 function Impl:GetName()
@@ -288,7 +301,11 @@ function Impl:GetConfig()
 	return self.config
 end
 
+---Create a new Implemented class
+---@param name string
+---@return Impl
 function NewImpl(name)
+	---@type Impl
 	local impl = Impl:extend({
 		name = name,
 		config = Config[name] or {},
