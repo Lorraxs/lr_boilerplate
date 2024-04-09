@@ -7,13 +7,19 @@ import AppActionHook from './components/AppActionHook';
 import { isEnvBrowser } from './utils/misc';
 import { fetchNui } from './utils/fetchNui';
 import { DefaultUISetting, ISettingContext, UISetting } from './types';
+import stringd from 'stringd';
 
 export const SettingContext = createContext<ISettingContext>(DefaultUISetting);
 
 function App() {
   const show = useSelector((state: RootState) => state.main.show);
   const [setting, setSetting] = useState<UISetting>({ locale: {} });
-  const L = (key: string) => setting.locale[key] || key;
+  const L = (key: string, args?: { [key: string]: string | number }) => {
+    if (setting.locale[key]) {
+      return stringd(setting.locale[key], args) as string;
+    }
+    return key;
+  };
   useEffect(() => {
     if (!isEnvBrowser()) {
       setTimeout(async () => {
