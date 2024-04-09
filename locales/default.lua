@@ -1,0 +1,3 @@
+Locales['default'] = {
+  ['TEST'] = "Test"
+}

@@ -1,9 +1,11 @@
+Locales = {}
 Config = {}
 
 Config.Dependencies = {} -- Reqired resources loaded to start
+Config.Locale = 'vi'
 
 Config.Settings = {
-  locale = {}
+  locale = Locales[Config.Locale] or Locales['default']
 }
 
 --Dont touch this
