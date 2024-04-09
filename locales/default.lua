@@ -1,3 +1,0 @@
-Locales['default'] = {
-  ['TEST'] = "Test"
-}
