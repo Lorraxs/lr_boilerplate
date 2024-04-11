@@ -22,7 +22,8 @@ Config.EnableModules = {
 Config.Debug = true
 Config.Nui = false
 Config.Dev = false
-Config.Framework = "custom" -- "qb" | "esx" | "custom"
+---@type "qb" | "esx" | "ProjectStarboy" | "standalone"
+Config.Framework = "standalone" -- "qb" | "esx" | "custom"
 Config.ClientLazyLoad = false
 
 function L(key, ...)

@@ -391,6 +391,19 @@ Citizen.CreateThread(function()
   while Framework == nil do
     main:LogInfo("Waiting for Framework")
     Wait(100)
+    if Config.Framework == 'esx' then
+      Framework = exports["es_extended"]:getSharedObject()
+    elseif Config.Framework == "qb" then
+      Framework = exports['qb-core']:GetCoreObject()
+    elseif Config.Framework == "ProjectStarboy" then
+      Framework = CORE
+    else
+      Framework = {}
+      Framework.Functions = {}
+      Framework.Functions.GetPlayerData = function()
+        return {}
+      end
+    end
   end
   main:InitImpl()
   if not IsDuplicityVersion() then
