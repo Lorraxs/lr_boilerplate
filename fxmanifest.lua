@@ -49,3 +49,14 @@ server_script {
   "server/classes/*",
   "server/impl/*"
 }
+
+escrow_ignore {
+  "locales/lang/*.lua",
+  "config.lua",
+  "main.lua",
+  "impl.lua",
+  "client/utils.lua",
+  "client/bridge.lua",
+  "server/utils.lua",
+  "server/bridge.lua",
+}
